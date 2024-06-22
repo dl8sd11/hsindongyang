@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/photoslibrary/v1.dart';
 import 'package:googleapis_auth/googleapis_auth.dart' as auth show AuthClient;
+import 'package:hsindongyang/face_service.dart';
 import 'package:media_scanner/media_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -75,7 +76,7 @@ class PhotoApi extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> prepareImage() async {
+  Future<void> prepareImage(String? faceFilter) async {
     final prefs = await SharedPreferences.getInstance();
     final albumId = prefs.getString('albumId');
     fetchDate = DateTime.parse(prefs.getString('next-edit-date') ?? '');
@@ -103,6 +104,24 @@ class PhotoApi extends ChangeNotifier {
           DateTime.parse(element.mediaMetadata?.creationTime ?? ""),
           currentDate);
     }).toList();
+
+    final faceService = FaceRecognitionService();
+
+    if (faceFilter != null) {
+      List<MediaItem> filtered = [];
+      for (var image in images) {
+        final result =
+            await faceService.recognizeFaces("${image.baseUrl}=w364", "amazon");
+        final items = result["amazon"]["items"];
+        if (items == null || items.length == 0) {
+          continue;
+        }
+        if (items[0]["face_id"] == faceFilter) {
+          filtered.add(image);
+        }
+      }
+      images = filtered;
+    }
 
     notifyListeners();
   }

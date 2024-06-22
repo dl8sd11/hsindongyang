@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hsindongyang/edit_content_page.dart';
+import 'package:hsindongyang/face_service.dart';
 import 'package:hsindongyang/image_select_item.dart';
 import 'package:hsindongyang/image_selection.dart';
 import 'package:hsindongyang/photo_api.dart';
@@ -23,6 +24,8 @@ class _ImageSelectPageState extends State<ImageSelectPage> {
     selection.clear();
   }
 
+  String? selected_person;
+
   @override
   Widget build(BuildContext context) {
     PhotoApi api = context.watch<PhotoApi>();
@@ -33,7 +36,11 @@ class _ImageSelectPageState extends State<ImageSelectPage> {
           TextButton(
             child: const Text("Load"),
             onPressed: () {
-              api.prepareImage();
+              Map<String, String> personId = {
+                "yang": "f8679bd1-a8d7-4975-9202-9275dd714203",
+                "dong": "6e7ebba3-c68e-440c-9434-fb1f1807755c"
+              };
+              api.prepareImage(personId[selected_person]);
             },
           ),
           TextButton(
@@ -58,6 +65,16 @@ class _ImageSelectPageState extends State<ImageSelectPage> {
           children: [
             Center(
                 child: Text("請從 ${api.images.length} 張照片中選擇最多十張相片 (${0}/10)")),
+            DropdownButton(
+                value: selected_person,
+                items: ['dong', 'yang']
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                    .toList(),
+                onChanged: (dynamic s) {
+                  setState(() {
+                    selected_person = s;
+                  });
+                }),
             Expanded(
               child: ListView(children: imageSelectItemsList(api)),
             ),
